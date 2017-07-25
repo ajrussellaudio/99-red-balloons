@@ -5,7 +5,6 @@ function setup() {
   noSmooth();
   strokeWeight(2);
   noiseScale = 0.0;
-  // drawPole(createVector(width/2, height/2), length);
 }
 
 function draw() {
@@ -14,7 +13,6 @@ function draw() {
   const length = min(height, width) / 12;
   for (var x = 1; x < width; x += length * 2){
     for (var y = length; y < height; y += length * 2) {
-      // drawPole(createVector(x, y), createVector(noise(noiseScale) * length - length/2, -length), length);
       noiseSeed(sqrt(x*y));
       var mappedX= map(noise(noiseScale), 0, 1, -length/2, length/2);
       var windDirection = createVector(mappedX, length);
