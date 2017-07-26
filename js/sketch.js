@@ -53,11 +53,8 @@ const Balloon = function(stringBase, stringLength) {
 }
 
 Balloon.prototype.move = function(windDirection) {
-  // this.windDirection.add(windDirection);
-  // this.balloonCenter = p5.Vector.random2D().mult(this.stringLength);
   var angle = windDirection.heading();
   var distance = windDirection.mag();
-
   this.balloonCenter = createVector(cos(angle) * distance, this.balloonCenter.y - sin(angle) * distance);
 };
 
