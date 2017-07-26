@@ -1,55 +1,80 @@
 var noiseScale;
+var balloons;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   noSmooth();
   strokeWeight(2);
+  // frameRate(4);
   noiseScale = 0.0;
+  balloons = [];
+  const length = min(height, width) / 12;
+  for (var x = 1; x < width; x += length * 2){
+    for (var y = length; y < height; y += length * 2) {
+      balloons.push(new Balloon(createVector(x, y), length))
+    }
+  }
 }
 
 function draw() {
   background(255);
   noiseScale += 0.01;
   const length = min(height, width) / 12;
-  for (var x = 1; x < width; x += length * 2){
-    for (var y = length; y < height; y += length * 2) {
-      noiseSeed(sqrt(x*y));
-      var mappedX= map(noise(noiseScale), 0, 1, -length/2, length/2);
-      var windDirection = createVector(mappedX, length);
-      drawPole(createVector(x, y), windDirection, length);
-    }
+  for (var balloon of balloons) {
+    noiseSeed(balloon.noiseSeed);
+    var mappedX = map(noise(noiseScale), 0, 1, -length, length);
+    balloon.move(createVector(mappedX, 0));
+    balloon.draw();
   }
-}
-
-function drawPole(center, windDirection, length) {
-  push();
-  translate(center.x + length / 2, center.y + length / 3);
-  var ballSize = createVector(length / 3, length / 3);
-  drawShadow(createVector(0, 0), windDirection, length, ballSize);
-  drawPin(createVector(0, 0), windDirection, length, ballSize);
-  pop();
-}
-
-function drawPin(center, windDirection, length, ballSize) {
-  stroke(0);
-  fill("red");
-  var windAngle = atan2(center.y - windDirection.y, center.x - windDirection.x);
-  var tip = createVector(center.x + cos(windAngle) * length, center.y + sin(windAngle) * length);
-  line(0, 0, tip.x, tip.y);
-  ellipse(tip.x, tip.y, ballSize.x, ballSize.y);
-  fill(255, 224);
-  noStroke();
-  ellipse(tip.x - ballSize.x/6, tip.y - ballSize.y/6, ballSize.x/4, ballSize.y/4);
 }
 
 function drawShadow(center, windDirection, length, ballSize) {
   var shadowColor = color(160);
   var angle = radians(-30);
   var distance = length * 0.5;
-  var shadowTip = createVector(cos(angle) * distance - windDirection.x, sin(angle) * distance);
+  var shadowTip = createVector(windDirection.x + cos(angle) * distance, sin(angle) * distance);
   stroke(shadowColor);
   fill(shadowColor);
   line(center.x, center.y, shadowTip.x, shadowTip.y);
   ellipse(shadowTip.x, shadowTip.y, ballSize.x, ballSize.y/2);
 }
 
+function randomColor() {
+  return color(random(256), random(256), random(256));
+}
+
+const Balloon = function(stringBase, stringLength) {
+  this.stringBase = stringBase;
+  this.stringLength = stringLength;
+  this.balloonCenter = createVector(0, -stringLength);
+  this.balloonSize = createVector(stringLength/2, stringLength/2);
+  this.color = randomColor();
+  this.noiseSeed = random(100);
+}
+
+Balloon.prototype.move = function(windDirection) {
+  // this.windDirection.add(windDirection);
+  // this.balloonCenter = p5.Vector.random2D().mult(this.stringLength);
+  var angle = windDirection.heading();
+  var distance = windDirection.mag();
+
+  this.balloonCenter = createVector(cos(angle) * distance, this.balloonCenter.y - sin(angle) * distance);
+};
+
+Balloon.prototype.draw = function() {
+  push();
+  translate(this.stringBase.x, this.stringBase.y);
+  drawShadow(createVector(0, 0), this.balloonCenter, this.stringLength, this.balloonSize);
+  this.drawBalloon();
+  pop();
+};
+
+Balloon.prototype.drawBalloon = function() {
+  stroke("#333333");
+  fill(this.color);
+  line(0, 0, this.balloonCenter.x, this.balloonCenter.y);
+  ellipse(this.balloonCenter.x, this.balloonCenter.y, this.balloonSize.x, this.balloonSize.y);
+  noStroke();
+  fill(255, 128);
+  ellipse(this.balloonCenter.x - this.balloonSize.x / 6, this.balloonCenter.y - this.balloonSize.y / 6, this.balloonSize.x / 4, this.balloonSize.y / 4);
+};
